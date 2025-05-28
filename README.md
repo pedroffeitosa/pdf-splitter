@@ -1,58 +1,55 @@
 # PDF Splitter
 
-A simple Python script to split large PDF files into smaller parts.
+Um aplicativo Python para dividir arquivos PDF grandes em partes menores.
 
 ## Features
 
-- Split any PDF into multiple volumes.
-- Automatically calculates how many pages go into each part.
-- No file size limit — runs locally on your machine.
+- Interface gráfica moderna e intuitiva
+- Split qualquer PDF em múltiplos volumes
+- Calcula automaticamente quantas páginas vão em cada parte
+- Sem limite de tamanho de arquivo — roda localmente na sua máquina
 
-## Requirements
+## Requisitos
 
 - Python 3.7+
 - `PyPDF2` library
+- `ttkthemes` library
 
-## Setup Instructions
+## Instruções de Instalação
 
-### 1. Clone this repository
+### 1. Clone este repositório
 
 ```
 git clone https://github.com/yourusername/pdf-splitter.git
 cd pdf-splitter
 ```
 
-### 2. Create a virtual environment
+### 2. Crie um ambiente virtual
 
 ```
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # No Windows: venv\Scripts\activate
 ```
 
-### 3. Install dependencies
+### 3. Instale as dependências
 
 ```
 pip install -r requirements.txt
 ```
 
-### 4. Add your PDF file
-
-Place the PDF you want to split in the same folder as the script. Rename it to `documento_grande.pdf` or edit the script to match your file name.
-
-### 5. Run the script
+### 4. Execute o aplicativo
 
 ```
-python pdf_splitter.py
+python gui.py
 ```
 
-## Customization
+## Como Usar
 
-To split the PDF into a different number of parts, edit the last line of the script:
+1. Clique no botão "Procurar" para selecionar o arquivo PDF que deseja dividir
+2. Escolha o número de partes em que deseja dividir o PDF
+3. Clique em "Dividir PDF" para iniciar o processo
+4. Os arquivos divididos serão salvos na mesma pasta do arquivo original
 
-```python
-split_pdf_into_parts("documento_grande.pdf", parts=5)
-```
+## Licença
 
-## License
-
-This project is licensed under the MIT License.
+Este projeto está licenciado sob a Licença MIT.
