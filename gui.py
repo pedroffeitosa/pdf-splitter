@@ -9,13 +9,15 @@ class PDFSplitterGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("PDF Splitter")
-        self.root.geometry("600x500")
+        self.root.geometry("600x600")  # Aumentei a altura para acomodar os novos controles
         
         # Variáveis
         self.input_file = tk.StringVar()
         self.output_dir = tk.StringVar()
         self.num_parts = tk.IntVar(value=5)
         self.total_pages = tk.IntVar(value=0)
+        self.rotation = tk.IntVar(value=0)
+        self.compress = tk.BooleanVar(value=False)
         
         self.create_widgets()
         
@@ -64,6 +66,7 @@ class PDFSplitterGUI:
         parts_frame = ttk.LabelFrame(main_frame, text="Configurações", padding="10")
         parts_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
         
+        # Número de partes
         ttk.Label(parts_frame, text="Número de partes:").grid(row=0, column=0, padx=5)
         parts_spinbox = ttk.Spinbox(
             parts_frame,
@@ -74,6 +77,46 @@ class PDFSplitterGUI:
             command=self.update_pages_per_part
         )
         parts_spinbox.grid(row=0, column=1, padx=5)
+        
+        # Rotação
+        ttk.Label(parts_frame, text="Rotação:").grid(row=1, column=0, padx=5, pady=5)
+        rotation_frame = ttk.Frame(parts_frame)
+        rotation_frame.grid(row=1, column=1, sticky=tk.W)
+        
+        ttk.Radiobutton(
+            rotation_frame,
+            text="0°",
+            variable=self.rotation,
+            value=0
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Radiobutton(
+            rotation_frame,
+            text="90°",
+            variable=self.rotation,
+            value=90
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Radiobutton(
+            rotation_frame,
+            text="180°",
+            variable=self.rotation,
+            value=180
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Radiobutton(
+            rotation_frame,
+            text="270°",
+            variable=self.rotation,
+            value=270
+        ).pack(side=tk.LEFT, padx=5)
+        
+        # Compressão
+        ttk.Checkbutton(
+            parts_frame,
+            text="Comprimir PDF",
+            variable=self.compress
+        ).grid(row=2, column=0, columnspan=2, pady=5)
         
         # Informações do PDF
         info_frame = ttk.LabelFrame(main_frame, text="Informações do PDF", padding="10")
@@ -98,8 +141,7 @@ class PDFSplitterGUI:
         process_button = ttk.Button(
             main_frame,
             text="Dividir PDF",
-            command=self.process_pdf,
-            style="Accent.TButton"
+            command=self.process_pdf
         )
         process_button.grid(row=6, column=0, columnspan=2, pady=20)
         
@@ -167,8 +209,14 @@ class PDFSplitterGUI:
             self.progress["value"] = 0
             self.root.update()
             
-            # Atualiza a função split_pdf para usar a pasta de saída
-            split_pdf(input_file, self.num_parts.get(), output_dir)
+            # Atualiza a função split_pdf para usar as novas opções
+            split_pdf(
+                input_file,
+                self.num_parts.get(),
+                output_dir,
+                self.rotation.get(),
+                self.compress.get()
+            )
             
             self.progress["value"] = 100
             self.status_label.config(text="PDF dividido com sucesso!")

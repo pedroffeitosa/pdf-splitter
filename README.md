@@ -12,6 +12,8 @@ Um aplicativo Python para dividir arquivos PDF grandes em partes menores.
 - Preview do número total de páginas do PDF
 - Barra de progresso durante o processamento
 - Informações detalhadas sobre a divisão
+- Rotação de páginas (0°, 90°, 180°, 270°)
+- Compressão de PDF para reduzir o tamanho dos arquivos
 
 ## Requisitos
 
@@ -52,10 +54,12 @@ python gui.py
 1. Clique no botão "Procurar" para selecionar o arquivo PDF que deseja dividir
 2. (Opcional) Clique em "Escolher" para selecionar uma pasta de saída diferente
 3. Escolha o número de partes em que deseja dividir o PDF
-4. Observe as informações do PDF (total de páginas e páginas por parte)
-5. Clique em "Dividir PDF" para iniciar o processo
-6. Acompanhe o progresso na barra de progresso
-7. Os arquivos divididos serão salvos na pasta escolhida (ou na mesma pasta do arquivo original)
+4. (Opcional) Selecione a rotação desejada para as páginas (0°, 90°, 180°, 270°)
+5. (Opcional) Marque a opção "Comprimir PDF" para reduzir o tamanho dos arquivos
+6. Observe as informações do PDF (total de páginas e páginas por parte)
+7. Clique em "Dividir PDF" para iniciar o processo
+8. Acompanhe o progresso na barra de progresso
+9. Os arquivos divididos serão salvos na pasta escolhida (ou na mesma pasta do arquivo original)
 
 ## Licença
 

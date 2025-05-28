@@ -2,7 +2,7 @@ from PyPDF2 import PdfReader, PdfWriter
 import math
 import os
 
-def split_pdf(input_path: str, parts: int = 5, output_dir: str = None):
+def split_pdf(input_path: str, parts: int = 5, output_dir: str = None, rotation: int = 0, compress: bool = False):
     reader = PdfReader(input_path)
     total_pages = len(reader.pages)
     pages_per_part = math.ceil(total_pages / parts)
@@ -20,11 +20,21 @@ def split_pdf(input_path: str, parts: int = 5, output_dir: str = None):
 
         writer = PdfWriter()
         for j in range(start, end):
-            writer.add_page(reader.pages[j])
+            page = reader.pages[j]
+            if rotation != 0:
+                page.rotate(rotation)
+            writer.add_page(page)
 
         output_filename = os.path.join(output_dir, f"volume_{i + 1}.pdf")
-        with open(output_filename, "wb") as output_file:
-            writer.write(output_file)
+        
+        # Configurações de compressão
+        if compress:
+            writer.add_metadata(reader.metadata)
+            with open(output_filename, "wb") as output_file:
+                writer.write(output_file, compress=True)
+        else:
+            with open(output_filename, "wb") as output_file:
+                writer.write(output_file)
 
         print(f"Created: {output_filename} (pages {start + 1} to {end})")
 
