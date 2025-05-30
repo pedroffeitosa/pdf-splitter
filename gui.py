@@ -9,7 +9,10 @@ class PDFSplitterGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("PDF Splitter")
-        self.root.geometry("600x600")
+        
+        # Configuração inicial para tela cheia
+        self.root.attributes('-zoomed', True)  # Para Linux
+        self.root.minsize(800, 600)  # Tamanho mínimo da janela
         
         # Variáveis
         self.input_file = tk.StringVar()
@@ -18,6 +21,7 @@ class PDFSplitterGUI:
         self.total_pages = tk.IntVar(value=0)
         self.rotation = tk.IntVar(value=0)
         self.compress = tk.BooleanVar(value=False)
+        self.is_fullscreen = tk.BooleanVar(value=True)
         
         self.create_widgets()
         
@@ -26,20 +30,39 @@ class PDFSplitterGUI:
         main_frame = ttk.Frame(self.root, padding="20")
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
+        # Configurar o grid para expandir
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(0, weight=1)
+        
+        # Barra de título personalizada
+        title_bar = ttk.Frame(main_frame)
+        title_bar.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 20))
+        
         # Título
         title_label = ttk.Label(
-            main_frame,
+            title_bar,
             text="PDF Splitter",
             font=("Helvetica", 24, "bold")
         )
-        title_label.grid(row=0, column=0, columnspan=2, pady=20)
+        title_label.pack(side=tk.LEFT)
+        
+        # Botão de tela cheia
+        fullscreen_button = ttk.Button(
+            title_bar,
+            text="⛶",  # Símbolo de tela cheia
+            width=3,
+            command=self.toggle_fullscreen
+        )
+        fullscreen_button.pack(side=tk.RIGHT)
         
         # Seleção de arquivo
         file_frame = ttk.LabelFrame(main_frame, text="Arquivo PDF", padding="10")
         file_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        file_frame.grid_columnconfigure(0, weight=1)
         
-        file_entry = ttk.Entry(file_frame, textvariable=self.input_file, width=50)
-        file_entry.grid(row=0, column=0, padx=5)
+        file_entry = ttk.Entry(file_frame, textvariable=self.input_file)
+        file_entry.grid(row=0, column=0, padx=5, sticky=(tk.W, tk.E))
         
         browse_button = ttk.Button(
             file_frame,
@@ -51,9 +74,10 @@ class PDFSplitterGUI:
         # Pasta de saída
         output_frame = ttk.LabelFrame(main_frame, text="Pasta de Saída", padding="10")
         output_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        output_frame.grid_columnconfigure(0, weight=1)
         
-        output_entry = ttk.Entry(output_frame, textvariable=self.output_dir, width=50)
-        output_entry.grid(row=0, column=0, padx=5)
+        output_entry = ttk.Entry(output_frame, textvariable=self.output_dir)
+        output_entry.grid(row=0, column=0, padx=5, sticky=(tk.W, tk.E))
         
         output_button = ttk.Button(
             output_frame,
@@ -136,10 +160,9 @@ class PDFSplitterGUI:
         self.progress = ttk.Progressbar(
             main_frame,
             orient="horizontal",
-            length=400,
             mode="determinate"
         )
-        self.progress.grid(row=5, column=0, columnspan=2, pady=10)
+        self.progress.grid(row=5, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
         
         # Botão de processamento
         process_button = ttk.Button(
@@ -156,6 +179,14 @@ class PDFSplitterGUI:
             font=("Helvetica", 10)
         )
         self.status_label.grid(row=7, column=0, columnspan=2)
+        
+    def toggle_fullscreen(self):
+        if self.is_fullscreen.get():
+            self.root.attributes('-zoomed', False)
+            self.is_fullscreen.set(False)
+        else:
+            self.root.attributes('-zoomed', True)
+            self.is_fullscreen.set(True)
         
     def browse_file(self):
         filename = filedialog.askopenfilename(
