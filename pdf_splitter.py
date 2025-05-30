@@ -5,21 +5,26 @@ import os
 def split_pdf(input_path: str, parts: int = 5, output_dir: str = None, rotation: int = 0, compress: bool = False):
     reader = PdfReader(input_path)
     total_pages = len(reader.pages)
-    pages_per_part = math.ceil(total_pages / parts)
+    
+    # Calcula a divisão exata
+    base_pages = total_pages // parts
+    extra_pages = total_pages % parts
 
     print(f"Total pages: {total_pages}")
-    print(f"Splitting into {parts} parts with up to {pages_per_part} pages each...")
+    print(f"Splitting into {parts} parts...")
 
     # Se não for especificada uma pasta de saída, usa a mesma do arquivo de entrada
     if output_dir is None:
         output_dir = os.path.dirname(input_path)
 
+    current_page = 0
     for i in range(parts):
-        start = i * pages_per_part
-        end = min((i + 1) * pages_per_part, total_pages)
+        # Calcula quantas páginas esta parte terá
+        pages_in_part = base_pages + (1 if i < extra_pages else 0)
+        end_page = current_page + pages_in_part
 
         writer = PdfWriter()
-        for j in range(start, end):
+        for j in range(current_page, end_page):
             page = reader.pages[j]
             if rotation != 0:
                 page.rotate(rotation)
@@ -36,7 +41,8 @@ def split_pdf(input_path: str, parts: int = 5, output_dir: str = None, rotation:
             with open(output_filename, "wb") as output_file:
                 writer.write(output_file)
 
-        print(f"Created: {output_filename} (pages {start + 1} to {end})")
+        print(f"Created: {output_filename} (pages {current_page + 1} to {end_page})")
+        current_page = end_page
 
 # Example usage:
 # split_pdf("your_file.pdf", parts=5)

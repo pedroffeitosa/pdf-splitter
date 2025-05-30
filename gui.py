@@ -9,7 +9,7 @@ class PDFSplitterGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("PDF Splitter")
-        self.root.geometry("600x600")  # Aumentei a altura para acomodar os novos controles
+        self.root.geometry("600x600")
         
         # Variáveis
         self.input_file = tk.StringVar()
@@ -125,8 +125,12 @@ class PDFSplitterGUI:
         self.pages_label = ttk.Label(info_frame, text="Total de páginas: 0")
         self.pages_label.grid(row=0, column=0, padx=5)
         
-        self.pages_per_part_label = ttk.Label(info_frame, text="Páginas por parte: 0")
-        self.pages_per_part_label.grid(row=0, column=1, padx=5)
+        # Frame para detalhes da divisão
+        division_frame = ttk.Frame(info_frame)
+        division_frame.grid(row=1, column=0, columnspan=2, pady=5)
+        
+        self.division_label = ttk.Label(division_frame, text="")
+        self.division_label.pack()
         
         # Barra de progresso
         self.progress = ttk.Progressbar(
@@ -182,11 +186,24 @@ class PDFSplitterGUI:
             
     def update_pages_per_part(self, *args):
         if self.total_pages.get() > 0:
+            total = self.total_pages.get()
             parts = self.num_parts.get()
-            pages_per_part = (self.total_pages.get() + parts - 1) // parts
-            self.pages_per_part_label.config(
-                text=f"Páginas por parte: {pages_per_part}"
-            )
+            
+            # Calcula a divisão exata
+            base_pages = total // parts
+            extra_pages = total % parts
+            
+            # Cria a mensagem detalhada
+            message = "Divisão das páginas:\n"
+            current_page = 1
+            
+            for i in range(parts):
+                pages_in_part = base_pages + (1 if i < extra_pages else 0)
+                end_page = current_page + pages_in_part - 1
+                message += f"Parte {i+1}: páginas {current_page} a {end_page} ({pages_in_part} páginas)\n"
+                current_page = end_page + 1
+            
+            self.division_label.config(text=message)
             
     def process_pdf(self):
         input_file = self.input_file.get()
