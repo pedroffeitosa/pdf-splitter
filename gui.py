@@ -1,9 +1,11 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from ttkthemes import ThemedTk
-from pdf_splitter import split_pdf
+from pdf_splitter import split_pdf, estimate_processing_time
 import os
 from PyPDF2 import PdfReader
+import threading
+import time
 
 class PDFSplitterGUI:
     def __init__(self, root):
@@ -22,6 +24,7 @@ class PDFSplitterGUI:
         self.rotation = tk.IntVar(value=0)
         self.compress = tk.BooleanVar(value=False)
         self.is_fullscreen = tk.BooleanVar(value=True)
+        self.processing = False
         
         self.create_widgets()
         
@@ -164,21 +167,31 @@ class PDFSplitterGUI:
         )
         self.progress.grid(row=5, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
         
+        # Status e tempo estimado
+        self.status_frame = ttk.Frame(main_frame)
+        self.status_frame.grid(row=6, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
+        
+        self.status_label = ttk.Label(
+            self.status_frame,
+            text="",
+            font=("Helvetica", 10)
+        )
+        self.status_label.pack(side=tk.LEFT)
+        
+        self.estimated_time_label = ttk.Label(
+            self.status_frame,
+            text="",
+            font=("Helvetica", 10)
+        )
+        self.estimated_time_label.pack(side=tk.RIGHT)
+        
         # Botão de processamento
-        process_button = ttk.Button(
+        self.process_button = ttk.Button(
             main_frame,
             text="Dividir PDF",
             command=self.process_pdf
         )
-        process_button.grid(row=6, column=0, columnspan=2, pady=20)
-        
-        # Status
-        self.status_label = ttk.Label(
-            main_frame,
-            text="",
-            font=("Helvetica", 10)
-        )
-        self.status_label.grid(row=7, column=0, columnspan=2)
+        self.process_button.grid(row=7, column=0, columnspan=2, pady=20)
         
     def toggle_fullscreen(self):
         if self.is_fullscreen.get():
@@ -212,6 +225,11 @@ class PDFSplitterGUI:
             self.total_pages.set(len(reader.pages))
             self.pages_label.config(text=f"Total de páginas: {self.total_pages.get()}")
             self.update_pages_per_part()
+            
+            # Update estimated time
+            file_size_mb = os.path.getsize(self.input_file.get()) / (1024 * 1024)
+            self.update_estimated_time(file_size_mb, self.total_pages.get())
+            
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao ler o PDF: {str(e)}")
             
@@ -236,7 +254,37 @@ class PDFSplitterGUI:
             
             self.division_label.config(text=message)
             
+    def update_progress(self, progress: float, message: str):
+        """Update progress bar and status message."""
+        if progress < 0:  # Error occurred
+            self.status_label.config(text=f"Erro: {message}")
+            self.progress["value"] = 0
+            self.process_button.config(state="normal")
+            self.processing = False
+            return
+            
+        self.progress["value"] = progress
+        self.status_label.config(text=message)
+        
+        if progress >= 100:
+            self.status_label.config(text="PDF dividido com sucesso!")
+            self.process_button.config(state="normal")
+            self.processing = False
+            messagebox.showinfo("Sucesso", "O PDF foi dividido com sucesso!")
+    
+    def update_estimated_time(self, file_size_mb: float, total_pages: int):
+        """Update estimated processing time display."""
+        estimated_seconds = estimate_processing_time(file_size_mb, total_pages)
+        minutes = int(estimated_seconds // 60)
+        seconds = int(estimated_seconds % 60)
+        self.estimated_time_label.config(
+            text=f"Tempo estimado: {minutes} min {seconds} seg"
+        )
+    
     def process_pdf(self):
+        if self.processing:
+            return
+            
         input_file = self.input_file.get()
         output_dir = self.output_dir.get()
         
@@ -253,25 +301,36 @@ class PDFSplitterGUI:
             return
             
         try:
+            self.processing = True
+            self.process_button.config(state="disabled")
             self.status_label.config(text="Processando...")
             self.progress["value"] = 0
             self.root.update()
             
-            # Atualiza a função split_pdf para usar as novas opções
-            split_pdf(
-                input_file,
-                self.num_parts.get(),
-                output_dir,
-                self.rotation.get(),
-                self.compress.get()
-            )
+            # Calculate file size in MB
+            file_size_mb = os.path.getsize(input_file) / (1024 * 1024)
+            self.update_estimated_time(file_size_mb, self.total_pages.get())
             
-            self.progress["value"] = 100
-            self.status_label.config(text="PDF dividido com sucesso!")
-            messagebox.showinfo("Sucesso", "O PDF foi dividido com sucesso!")
+            # Start processing in a separate thread
+            thread = threading.Thread(
+                target=split_pdf,
+                args=(
+                    input_file,
+                    self.num_parts.get(),
+                    output_dir,
+                    self.rotation.get(),
+                    self.compress.get(),
+                    self.update_progress
+                )
+            )
+            thread.daemon = True
+            thread.start()
+            
         except Exception as e:
             self.status_label.config(text="")
             self.progress["value"] = 0
+            self.process_button.config(state="normal")
+            self.processing = False
             messagebox.showerror("Erro", f"Ocorreu um erro: {str(e)}")
 
 def main():
