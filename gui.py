@@ -12,6 +12,10 @@ class PDFSplitterGUI:
         self.root = root
         self.root.title("PDF Splitter")
         
+        # Theme configuration
+        self.current_theme = tk.StringVar(value="arc")  # Default light theme
+        self.root.set_theme(self.current_theme.get())
+        
         # Configuração inicial para tela cheia
         self.root.attributes('-zoomed', True)  # Para Linux
         self.root.minsize(800, 600)  # Tamanho mínimo da janela
@@ -49,6 +53,15 @@ class PDFSplitterGUI:
             font=("Helvetica", 24, "bold")
         )
         title_label.pack(side=tk.LEFT)
+        
+        # Theme toggle button
+        self.theme_button = ttk.Button(
+            title_bar,
+            text="🌙",  # Moon symbol for dark mode
+            width=3,
+            command=self.toggle_theme
+        )
+        self.theme_button.pack(side=tk.RIGHT, padx=5)
         
         # Botão de tela cheia
         fullscreen_button = ttk.Button(
@@ -193,6 +206,32 @@ class PDFSplitterGUI:
         )
         self.process_button.grid(row=7, column=0, columnspan=2, pady=20)
         
+    def toggle_theme(self):
+        """Toggle between light and dark themes."""
+        if self.current_theme.get() == "arc":
+            self.current_theme.set("equilux")  # Dark theme
+            self.theme_button.configure(text="☀️")  # Sun symbol for light mode
+        else:
+            self.current_theme.set("arc")  # Light theme
+            self.theme_button.configure(text="🌙")  # Moon symbol for dark mode
+        
+        # Apply the new theme
+        self.root.set_theme(self.current_theme.get())
+        
+        # Update widget styles for better dark mode compatibility
+        if self.current_theme.get() == "equilux":
+            style = ttk.Style()
+            style.configure("TLabel", foreground="white")
+            style.configure("TButton", foreground="white")
+            style.configure("TCheckbutton", foreground="white")
+            style.configure("TRadiobutton", foreground="white")
+        else:
+            style = ttk.Style()
+            style.configure("TLabel", foreground="black")
+            style.configure("TButton", foreground="black")
+            style.configure("TCheckbutton", foreground="black")
+            style.configure("TRadiobutton", foreground="black")
+        
     def toggle_fullscreen(self):
         if self.is_fullscreen.get():
             self.root.attributes('-zoomed', False)
@@ -334,7 +373,7 @@ class PDFSplitterGUI:
             messagebox.showerror("Erro", f"Ocorreu um erro: {str(e)}")
 
 def main():
-    root = ThemedTk(theme="arc")
+    root = ThemedTk(theme="arc")  # Start with light theme
     app = PDFSplitterGUI(root)
     root.mainloop()
 
